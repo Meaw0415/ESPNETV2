@@ -12,7 +12,7 @@ from PIL import Image
 import numpy as np
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
- 
+import torchvision.transforms as T
 torch.manual_seed(17)
 
 class CamVidDataset(torch.utils.data.Dataset):
@@ -29,14 +29,16 @@ class CamVidDataset(torch.utils.data.Dataset):
     """
     
     def __init__(self, images_dir,root):
+
         self.transform = A.Compose([
+            # ToTensorV2(),
             A.Resize(448, 448),
-            A.HorizontalFlip(),
-            A.VerticalFlip(),
-            A.Normalize(),
+            A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ToTensorV2(),
         ])
-        
+            
+            
+            
         list_total=[]
         list_img = []
         list_mask = []
@@ -62,7 +64,7 @@ class CamVidDataset(torch.utils.data.Dataset):
         img_path = os.path.join(self.root,self.images_fps[i][1:])
         mask_path = os.path.join(self.root,self.masks_fps[i][1:])
         image = np.array(Image.open(img_path).convert('RGB'))
-        mask = np.array( Image.open(mask_path).convert('RGB'))
+        mask = np.array( Image.open(mask_path).convert('RGB'))/255
         image = self.transform(image=image,mask=mask)
         
         return image['image'], image['mask'][:,:,0]
